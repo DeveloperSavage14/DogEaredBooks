@@ -35,6 +35,9 @@
   <div id="auth"></div>
   <div class="pick" id="pick" hidden><div class="pk-bd"></div><div class="pk-sheet" role="listbox"><div class="pk-head"><span id="pk-title">Choose</span><button type="button" id="pk-x" aria-label="Close">×</button></div><div class="pk-list" id="pk-list"></div></div></div>
   <div class="pick" id="sharepv" hidden><div class="pk-bd"></div><div class="pk-sheet"><div class="pk-head"><span>Your share image</span><button type="button" id="spv-x" aria-label="Close">×</button></div><div class="spvbody"><img id="spv-img" alt="Share image with the author's name"><p class="sub">The author’s name is built into the picture. Save it, then share it from your gallery.</p><a class="btn" id="spv-dl">Save image</a></div></div></div>
+  <div class="pick" id="act" hidden><div class="pk-bd"></div><div class="pk-sheet"><div class="pk-head"><span id="act-t">Options</span><button type="button" id="act-x" aria-label="Close">×</button></div><div class="pk-list" id="act-list"></div></div></div>
+  <div class="pick" id="rpt" hidden><div class="pk-bd"></div><div class="pk-sheet"><div class="pk-head"><span id="rpt-t">Report</span><button type="button" id="rpt-x" aria-label="Close">×</button></div><div class="rptbody"><p class="sub" style="margin:10px 0 4px;color:#4a5b62">Why are you reporting this? Reports are private. <button type="button" class="linkbtn" data-info="guidelines">Community guidelines</button></p><div id="rpt-list" role="radiogroup"></div><textarea id="rpt-note" maxlength="300" placeholder="Anything else our team should know? (optional)" style="min-height:70px;margin-top:10px;background:#f2f8f8;color:#1d2a30;border-color:#bdd2d2"></textarea><label class="rd2" id="rpt-blk" style="margin-top:12px;color:#1d2a30"><input type="checkbox" id="rpt-block"> <span>Also block <b id="rpt-bn"></b></span></label><p class="err" id="rpt-err" role="alert" style="color:#a1281f"></p><button class="btn" id="rpt-send" disabled>Send report</button></div></div></div>
+  <div class="pick" id="info" hidden><div class="pk-bd"></div><div class="pk-sheet"><div class="pk-head"><span id="info-t">Info</span><button type="button" id="info-x" aria-label="Close">×</button></div><div id="info-b"></div></div></div>
   <div class="toast" id="toast" role="status"></div>
   <div class="stale" id="stale" hidden role="alert">Your server is out of date. Replace server.js with the newest version and restart it. Tap to dismiss.</div>
 </div>
@@ -46,9 +49,9 @@ var $=function(s){return document.querySelector(s)};
 var tok=null;try{tok=localStorage.getItem("deb_token")}catch(e){}
 var NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
 var BASE="";try{if(NATIVE)BASE=localStorage.getItem("deb_server")||""}catch(e){}
-var user=null,w={},posts=[],dirty=true,current=null,ptab="snippets",aRole=null,tags=[],lastView=null,wt=null,prevUrl=null,curTab="videos",feedType="videos",viewing=null,aptab="snippets",myBooks=[],editBook=null,bgenres=[],stab="snippets",topBooks=[],feedMore=0,chBook=null,editCh=null,rsize=18,viewPost=null,focusBook=null,curRoom=null,roomLast=0,roomTimer=null,chatRooms=[],pkSel=null,replyTo=null,qaList=[],respData={responses:[],waiting:[]};
+var user=null,w={},posts=[],dirty=true,current=null,ptab="snippets",aRole=null,tags=[],lastView=null,wt=null,prevUrl=null,curTab="videos",feedType="videos",viewing=null,aptab="snippets",myBooks=[],editBook=null,bgenres=[],stab="snippets",topBooks=[],feedMore=0,chBook=null,editCh=null,rsize=18,viewPost=null,focusBook=null,curRoom=null,roomLast=0,roomTimer=null,chatRooms=[],pkSel=null,replyTo=null,qaList=[],respData={responses:[],waiting:[]},blockList=[],appCfg={supportEmail:null},reportCtx=null,actFns=[];
 try{var sv0=+localStorage.getItem("deb_rsize");if(sv0>=14&&sv0<=30)rsize=sv0}catch(e){}
-var ic={heart:'<path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/>',chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',mark:'<path d="M6 3h12v18l-6-4-6 4z"/>',share:'<path d="M4 12v7h16v-7M12 3v12M7 8l5-5 5 5"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'};
+var ic={heart:'<path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/>',chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',mark:'<path d="M6 3h12v18l-6-4-6 4z"/>',share:'<path d="M4 12v7h16v-7M12 3v12M7 8l5-5 5 5"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',dots:'<circle cx="5" cy="12" r="1.7" fill="currentColor"/><circle cx="12" cy="12" r="1.7" fill="currentColor"/><circle cx="19" cy="12" r="1.7" fill="currentColor"/>'};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function fmt(n){return n>=1000?(n/1000).toFixed(n>=10000?0:1).replace(".0","")+"K":String(n)}
 function toast(t){var e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(function(){e.classList.remove("show")},1900)}
@@ -56,7 +59,7 @@ function store(t){try{if(t)localStorage.setItem("deb_token",t);else localStorage
 async function api(p,m,b){
  var r;try{r=await fetch(BASE+p,{method:m||"GET",headers:Object.assign({"Content-Type":"application/json"},tok?{Authorization:"Bearer "+tok}:{}),body:b?JSON.stringify(b):undefined})}catch(x){throw new Error("Can’t reach the server. Check the address and your connection.")}
  var d={};try{d=await r.json()}catch(e){}
- if(!r.ok){if(r.status===401&&tok&&user){signOut();toast("Please sign in again")}throw new Error(d.error||"Something went wrong")}
+ if(!r.ok){if(r.status===401&&tok&&user){signOut();toast("Please sign in again")}else if(r.status===403&&/suspended/i.test(d.error||"")&&tok&&user){signOut();toast(d.error)}throw new Error(d.error||"Something went wrong")}
  return d}
 function byId(id){return posts.filter(function(p){return p.id==id})[0]||(viewPost&&viewPost.id==id?viewPost:null)}
 function anm(id,n){return '<button class="aname" data-author="'+id+'">'+esc(n)+'</button>'}
@@ -64,7 +67,7 @@ function delBtn(p){return user&&p.author.id===user.id?'<button class="chip delbt
 function avHTML(url,name,cls){return url?'<img class="av'+(cls?" "+cls:"")+'" src="'+esc(BASE+url)+'" alt="">':'<span class="av'+(cls?" "+cls:"")+'">'+esc((name||"?")[0])+'</span>'}
 function railHTML(p){
  function b(a,cls,i,l){return '<button data-a="'+a+'" class="'+cls+'" aria-label="'+a+'"><span class="ic"><svg viewBox="0 0 24 24">'+ic[i]+'</svg></span>'+l+'</button>'}
- return '<div class="rail">'+b("like",p.liked?"on":"","heart",fmt(p.likes))+b("comment","","chat",p.comments)+b("save",p.saved?"on":"","mark",p.saved?"Saved":"Save")+b("share","","share","Share")+(user&&p.author.id===user.id?b("delete","","trash","Delete"):"")+'</div>'}
+ return '<div class="rail">'+b("like",p.liked?"on":"","heart",fmt(p.likes))+b("comment","","chat",p.comments)+b("save",p.saved?"on":"","mark",p.saved?"Saved":"Save")+b("share","","share","Share")+(user&&p.author.id===user.id?b("delete","","trash","Delete"):b("more","","dots","More"))+'</div>'}
 function followHTML(p){return '<button class="follow'+(p.following?' on':'')+'" data-a="follow">'+(p.following?'Following':'Follow')+'</button>'}
 function cardHTML(p){
  var v=!!p.videoUrl,bg=v?'#000':G[p.genres[0]];
@@ -101,6 +104,7 @@ async function cardClick(e){
    document.querySelectorAll(".card[data-id]").forEach(function(cd){var q=byId(cd.dataset.id);if(q&&q.author.id===p.author.id){q.following=!was;var f=cd.querySelector(".follow");if(f)f.outerHTML=followHTML(q)}});p.following=!was;
    toast(was?"Unfollowed":"Following "+p.author.name)}
   else if(a==="share"){await sharePost(p)}
+  else if(a==="more"){openActions("Post by "+p.author.name,[{label:"Report this post",fn:function(){reportFlow("post",p.id,p.author.id,p.author.name)}},{label:"Block "+p.author.name,danger:true,fn:function(){blockUser(p.author.id,p.author.name)}}])}
   else if(a==="delete"){await delPost(p.id)}
   else if(a==="comment"){current=p;openSheet()}
  }catch(err){toast(err.message)}
@@ -111,7 +115,7 @@ async function openSheet(){
  $("#sheet").classList.add("open");var d;
  try{d=await api("/api/posts/"+current.id+"/comments")}catch(e){toast(e.message);return}
  current.comments=d.comments.length;$("#s-title").textContent=d.comments.length+" comments";
- $("#cmts").innerHTML=d.comments.length?d.comments.map(function(c){return '<div><b>'+esc(c.author)+'</b>'+esc(c.body)+'</div>'}).join(""):'<p class="empty">No comments yet. Be the first to share a reaction.</p>'}
+ $("#cmts").innerHTML=d.comments.length?d.comments.map(function(c){return '<div><b>'+esc(c.author)+'</b>'+esc(c.body)+(c.uid!==user.id?'<button class="mdel cmore" data-cmore="'+c.id+'" data-uid="'+c.uid+'" data-name="'+esc(c.author)+'" aria-label="More">···</button>':'')+'</div>'}).join(""):'<p class="empty">No comments yet. Be the first to share a reaction.</p>'}
 $("#s-close").onclick=function(){$("#sheet").classList.remove("open");var r=current&&document.querySelector('.card[data-id="'+current.id+'"] .rail');if(r)r.outerHTML=railHTML(current)};
 $("#c-send").onclick=async function(){var v=$("#c-in").value.trim();if(!v||!current)return;try{await api("/api/posts/"+current.id+"/comments","POST",{body:v});$("#c-in").value="";openSheet()}catch(e){toast(e.message)}};
 $("#c-in").addEventListener("keydown",function(e){if(e.key==="Enter")$("#c-send").click()});
@@ -138,12 +142,13 @@ async function renderProfile(){
  if(ptab==="chats"){try{chatRooms=(await api("/api/me/rooms")).rooms}catch(e){chatRooms=[]}}
  if(ptab==="qa"){try{qaList=(await api("/api/me/questions")).questions}catch(e){qaList=[]}}
  if(ptab==="responses"){try{respData=await api("/api/me/responses")}catch(e){respData={responses:[],waiting:[]}}}
+ if(ptab==="safety"){try{blockList=(await api("/api/me/blocks")).blocks;appCfg=await api("/api/config")}catch(e){blockList=[]}}
  var au=user.role==="author";
  var cnt={qa:d.counts&&d.counts.open,responses:d.counts&&d.counts.responses};if(au&&(ptab==="liked"||ptab==="books"||ptab==="responses"))ptab="snippets";if(!au&&(ptab==="snippets"||ptab==="videos"||ptab==="mybooks"||ptab==="qa"))ptab="liked";
  var src=au?d.posts:d.liked,sn=src.filter(function(p){return !p.videoUrl}),vd=src.filter(function(p){return p.videoUrl});
  var h='<div class="ph"><label class="avpick" title="Change profile photo">'+avHTML(user.avatarUrl,user.name,"big")+'<span class="cam" aria-hidden="true">+</span><input type="file" id="av-file" accept="image/*" hidden></label><div><h2>'+esc(user.name)+'</h2><small>'+(au?"Author":"Reader")+'</small>'+(user.avatarUrl?' <button class="chip avrm" id="av-rm">Remove photo</button>':'')+'</div></div>'+
  '<div class="stats"><div><b>'+d.followers.length+'</b>Followers</div><div><b>'+d.following.length+'</b>Following</div><div><b>'+src.length+'</b>'+(au?"Posts":"Liked")+'</div></div>'+
- '<div class="ptabs" role="tablist">'+(au?[["snippets","Snippets"],["videos","Videos"],["mybooks","Books"],["saved","Saved"],["chats","Chats"],["qa","Q&A"],["people","Followers"]]:[["liked","Liked"],["books","Top books"],["saved","Saved"],["responses","Responses"],["chats","Chats"],["people","Followers"]]).map(function(x){return '<button role="tab" data-pt="'+x[0]+'" aria-selected="'+(ptab===x[0])+'">'+x[1]+(cnt[x[0]]?' <span class="badge sm">'+cnt[x[0]]+'</span>':'')+'</button>'}).join("")+'</div>';
+ '<div class="ptabs" role="tablist">'+(au?[["snippets","Snippets"],["videos","Videos"],["mybooks","Books"],["saved","Saved"],["chats","Chats"],["qa","Q&A"],["people","Followers"],["safety","Safety"]]:[["liked","Liked"],["books","Top books"],["saved","Saved"],["responses","Responses"],["chats","Chats"],["people","Followers"],["safety","Safety"]]).map(function(x){return '<button role="tab" data-pt="'+x[0]+'" aria-selected="'+(ptab===x[0])+'">'+x[1]+(cnt[x[0]]?' <span class="badge sm">'+cnt[x[0]]+'</span>':'')+'</button>'}).join("")+'</div>';
  if(ptab==="liked")h+=likedHTML(sn,vd);
  else if(ptab==="books"){topBooks=d.frequentBooks||[];h+=booksHTML(topBooks)}
  else if(ptab==="mybooks"){myBooks=d.books||[];if(chBook)chBook=myBooks.filter(function(b){return b.id===chBook.id})[0]||null;h+=chBook?chaptersHTML(chBook):myBooksHTML(myBooks)}
@@ -151,6 +156,7 @@ async function renderProfile(){
  else if(ptab==="chats")h+=roomsHTML(chatRooms);
  else if(ptab==="qa")h+=qaInboxHTML(qaList);
  else if(ptab==="responses")h+=responsesHTML(respData);
+ else if(ptab==="safety")h+=safetyHTML();
  else if(ptab==="snippets")h+=sn.length?sn.map(snipHTML).join(""):'<p class="empty">No snippets yet. Open Post, skip the video and write a snippet.</p>';
  else if(ptab==="videos")h+=vd.length?'<div class="vgrid">'+vd.map(vidTile).join("")+'</div>':'<p class="empty">No videos yet. Open Post to share your first one.</p>';
  else h+=peopleHTML(d);
@@ -159,6 +165,9 @@ async function renderProfile(){
 $("#profile").addEventListener("click",async function(e){
  var t=e.target.closest("[data-pt]");if(t){ptab=t.dataset.pt;chBook=null;editCh=null;editBook=null;bgenres.length=0;renderProfile();return}
  var qr=e.target.closest("[data-qreply]");if(qr){var qi=qaList.filter(function(x){return String(x.id)===qr.dataset.qreply})[0];if(qi){replyTo={id:qi.id,body:qi.body,kind:qr.dataset.kind};go("write")}return}
+ var qrp=e.target.closest("[data-qrep]");if(qrp){reportFlow("question",+qrp.dataset.qrep,+qrp.dataset.uid,qrp.dataset.name);return}
+ var qbk=e.target.closest("[data-qblk]");if(qbk){blockUser(+qbk.dataset.qblk,qbk.dataset.name).then(function(){renderProfile()});return}
+ var ubk=e.target.closest("[data-unblock]");if(ubk){unblockUser(+ubk.dataset.unblock,ubk.dataset.name).then(function(){renderProfile()});return}
  var qd=e.target.closest("[data-qdel]");if(qd){if(!confirm("Remove this question?"))return;try{await api("/api/questions/"+qd.dataset.qdel,"DELETE");renderProfile()}catch(x){toast(x.message)}return}
  var rmx=e.target.closest("[data-room]");if(rmx){openRoom(+rmx.dataset.room);return}
  var chx=e.target.closest("[data-chat]");if(chx){var tb2=topBooks[+chx.dataset.chat];try{var rr=await api("/api/rooms/open","POST",{aid:tb2.aid,book:tb2.book});openRoom(rr.room.id)}catch(x){toast(x.message)}return}
@@ -209,7 +218,7 @@ async function openAuthor(id,opt){
  aptab=opt&&opt.book?"books":"snippets";focusBook=opt&&opt.book||null;renderAuthor()}
 function renderAuthor(){
  var d=viewing,sn=d.posts.filter(function(p){return !p.videoUrl}),vd=d.posts.filter(function(p){return p.videoUrl});
- var h='<button class="back" data-ab="back">← Back</button><div class="ph">'+avHTML(d.author.avatarUrl,d.author.name,"big")+'<div><h2>'+esc(d.author.name)+'</h2><small>Author</small></div></div>'+
+ var h='<div class="rbar2"><button class="back" data-ab="back">← Back</button><button class="chip" data-ab="more" aria-label="More">···</button></div><div class="ph">'+avHTML(d.author.avatarUrl,d.author.name,"big")+'<div><h2>'+esc(d.author.name)+'</h2><small>Author</small></div></div>'+
  '<button class="btn fbtn'+(d.following?' ghost':'')+'" data-ab="follow">'+(d.following?'Following':'Follow')+'</button>'+
  '<div class="stats"><div><b>'+d.followers+'</b>Followers</div><div><b>'+sn.length+'</b>Snippets</div><div><b>'+vd.length+'</b>Videos</div></div>'+
  '<div class="ptabs" role="tablist">'+[["snippets","Snippets"],["videos","Videos"],["books","Books"],["qa","Q&A"]].map(function(x){return '<button role="tab" data-apt="'+x[0]+'" aria-selected="'+(aptab===x[0])+'">'+x[1]+'</button>'}).join("")+'</div>';
@@ -224,6 +233,7 @@ $("#author").addEventListener("click",async function(e){
  var qd=e.target.closest("[data-qdel]");if(qd){try{await api("/api/questions/"+qd.dataset.qdel,"DELETE");await loadQa();renderAuthor()}catch(x){toast(x.message)}return}
  var a=e.target.closest("[data-ab]");if(!a)return;
  if(a.dataset.ab==="back"){go(curTab);return}
+ if(a.dataset.ab==="more"){var ad=viewing.author;openActions(ad.name,[{label:"Report "+ad.name,fn:function(){reportFlow("user",ad.id,ad.id,ad.name)}},{label:"Block "+ad.name,danger:true,fn:function(){blockUser(ad.id,ad.name)}}]);return}
  if(a.dataset.ab==="ask"){var qt=$("#qa-in").value.trim();if(qt.length<8){$("#qa-err").textContent="Write a question of at least 8 characters.";return}
   try{await api("/api/users/"+viewing.author.id+"/questions","POST",{body:qt});toast("Question sent. Answers appear under Responses.");await loadQa();renderAuthor()}catch(x){$("#qa-err").textContent=x.message}return}
  if(a.dataset.ab==="follow"){try{var was=viewing.following;await api("/api/users/"+viewing.author.id+"/follow",was?"DELETE":"POST");viewing.following=!was;viewing.followers+=was?-1:1;toggleFollowLocal(viewing.author.id,!was);renderAuthor();toast(was?"Unfollowed":"Following "+viewing.author.name)}catch(x){toast(x.message)}}});
@@ -262,22 +272,22 @@ function authStep1(mode){
  '<label class="l" for="a-name">Name</label><input type="text" id="a-name" maxlength="30" autocomplete="username">'+
  '<label class="l" for="a-pw">Password (8+ characters)</label><input type="password" id="a-pw" autocomplete="'+(su?"new-password":"current-password")+'">'+
  (su?'<label class="l">I’m joining as a</label><div class="roles"><button class="role" data-r="reader" aria-pressed="false"><b>Reader</b><span>Find books through short videos</span></button><button class="role" data-r="author" aria-pressed="false"><b>Author</b><span>Share videos about my books</span></button></div>':'')+
- '<p class="err" id="a-err" role="alert"></p><button class="btn" id="a-next" disabled>'+(su?"Continue":"Log in")+'</button><button class="btn ghost" id="a-sw">'+(su?"I already have an account":"Create an account")+'</button>';
- function chk(){$("#a-next").disabled=!($("#a-name").value.trim()&&$("#a-pw").value.length>=8&&(!su||aRole)&&(!NATIVE||$("#a-srv").value.trim()))}
+ (su?'<label class="rd2" style="margin-top:16px"><input type="checkbox" id="a-agree"> <span>I agree to the <button type="button" class="linkbtn" data-info="guidelines">community guidelines</button> and understand that accounts can be suspended for breaking them.</span></label>':'')+'<p class="err" id="a-err" role="alert"></p><button class="btn" id="a-next" disabled>'+(su?"Continue":"Log in")+'</button><button class="btn ghost" id="a-sw">'+(su?"I already have an account":"Create an account")+'</button>';
+ function chk(){$("#a-next").disabled=!($("#a-name").value.trim()&&$("#a-pw").value.length>=8&&(!su||(aRole&&$("#a-agree").checked))&&(!NATIVE||$("#a-srv").value.trim()))}
  if(NATIVE){$("#a-srv").value=BASE;$("#a-srv").oninput=chk}
- $("#a-name").oninput=chk;$("#a-pw").oninput=chk;
+ $("#a-name").oninput=chk;$("#a-pw").oninput=chk;if(su)$("#a-agree").onchange=chk;
  document.querySelectorAll(".role").forEach(function(b){b.onclick=function(){aRole=b.dataset.r;document.querySelectorAll(".role").forEach(function(x){x.setAttribute("aria-pressed",x===b)});chk()}});
  $("#a-sw").onclick=function(){authStep1(su?"login":"signup")};
  $("#a-next").onclick=async function(){var name=$("#a-name").value.trim(),pw=$("#a-pw").value;
   if(NATIVE){var sv=$("#a-srv").value.trim().replace(/\/+$/,"");if(!/^https?:\/\/.+/.test(sv)){$("#a-err").textContent="Enter the full address, like http://192.168.1.20:3000";return}BASE=sv;try{localStorage.setItem("deb_server",sv)}catch(x){}}
   if(!su){try{onAuth(await api("/api/login","POST",{name:name,password:pw}))}catch(e){$("#a-err").textContent=e.message}return}
   if(aRole==="reader")authStep2(name,pw);
-  else{try{onAuth(await api("/api/signup","POST",{name:name,password:pw,role:"author"}))}catch(e){$("#a-err").textContent=e.message}}}}
+  else{try{onAuth(await api("/api/signup","POST",{name:name,password:pw,role:"author",agree:true}))}catch(e){$("#a-err").textContent=e.message}}}}
 function authStep2(name,pw){var sel=[];
  $("#auth").innerHTML='<h1>What do you read?</h1><p class="sub">Pick the genres you like. You can fine-tune how much of each you see later in Tune.</p><div class="chips" id="a-g"></div><p class="err" id="a-err" role="alert"></p><button class="btn" id="a-go" disabled>Start reading</button><button class="btn ghost" id="a-back">Back</button>';
  chips($("#a-g"),sel,GN.length,function(){$("#a-go").disabled=!sel.length});
  $("#a-back").onclick=function(){authStep1()};
- $("#a-go").onclick=async function(){try{onAuth(await api("/api/signup","POST",{name:name,password:pw,role:"reader",genres:sel}))}catch(e){$("#a-err").textContent=e.message}}}
+ $("#a-go").onclick=async function(){try{onAuth(await api("/api/signup","POST",{name:name,password:pw,role:"reader",genres:sel,agree:true}))}catch(e){$("#a-err").textContent=e.message}}}
 function bookTitle(){var v=$("#w-book").value;if(v==="__other")return $("#w-other").value.trim();var b=myBooks.filter(function(x){return String(x.id)===v})[0];return b?b.title:""}
 function pickBook(){
  var v=$("#w-book").value;$("#w-other").style.display=v==="__other"?"block":"none";
@@ -323,7 +333,7 @@ function savedHTML(d){
  if(stab==="snippets")h+=sn.length?sn.map(snipHTML).join(""):'<p class="empty">No saved snippets yet. Tap Save on a snippet to keep it here.</p>';
  else h+=vd.length?'<div class="vgrid">'+vd.map(vidTile).join("")+'</div>':'<p class="empty">No saved videos yet. Tap Save on a video to keep it here.</p>';
  return h}
-async function checkServer(){try{var d=await api("/api/version");if(!(d.api>=10))throw 0}catch(e){if(e===0||(e&&e.message==="Not found"))$("#stale").hidden=false}}
+async function checkServer(){try{var d=await api("/api/version");if(!(d.api>=11))throw 0}catch(e){if(e===0||(e&&e.message==="Not found"))$("#stale").hidden=false}}
 $("#stale").onclick=function(){this.hidden=true};
 function chapterOptions(){
  var v=$("#w-book").value,b=myBooks.filter(function(x){return String(x.id)===v})[0],wrap=$("#w-chwrap"),sel=$("#w-chapter");
@@ -441,7 +451,7 @@ function roomsHTML(list){
 function chatChip(row,bk,i){var old=row.querySelector("[data-chat]");if(old)old.remove();if(bk.read){var b=document.createElement("button");b.className="chip";b.dataset.chat=i;b.textContent="Chat";row.insertBefore(b,row.querySelector(".chev"))}}
 function msgHTML(m){
  var del=(m.mine||(curRoom&&curRoom.canModerate))?'<button class="mdel" data-mdel="'+m.id+'" aria-label="Delete message">×</button>':'';
- return '<div class="msg'+(m.mine?' mine':'')+'" data-mid="'+m.id+'">'+(m.mine?'':avHTML(m.user.avatarUrl,m.user.name))+'<div class="mb"><div class="mh"><b>'+(m.isAuthor?anm(m.user.id,m.user.name):esc(m.user.name))+'</b>'+(m.isAuthor?'<span class="apill">Author</span>':'')+'</div><div class="mt">'+esc(m.body)+'</div><div class="mt2"><span>'+ago(m.created)+'</span>'+del+'</div></div></div>'}
+ return '<div class="msg'+(m.mine?' mine':'')+'" data-mid="'+m.id+'" data-uid="'+m.user.id+'">'+(m.mine?'':avHTML(m.user.avatarUrl,m.user.name))+'<div class="mb"><div class="mh"><b>'+(m.isAuthor?anm(m.user.id,m.user.name):esc(m.user.name))+'</b>'+(m.isAuthor?'<span class="apill">Author</span>':'')+'</div><div class="mt">'+esc(m.body)+'</div><div class="mt2"><span>'+ago(m.created)+'</span>'+del+(m.mine?'':'<button class="mdel" data-mmore="'+m.id+'" aria-label="More">···</button>')+'</div></div></div>'}
 function addMsgs(list,force){
  var box=$("#rmsgs");if(!box)return;var near=box.scrollHeight-box.scrollTop-box.clientHeight<90;
  list.forEach(function(m){if(box.querySelector('[data-mid="'+m.id+'"]'))return;box.insertAdjacentHTML("beforeend",msgHTML(m));if(m.id>roomLast)roomLast=m.id});
@@ -465,6 +475,8 @@ async function sendMsg(){
 $("#room").addEventListener("click",async function(e){
  if(e.target.closest("[data-rb=back]")){clearInterval(roomTimer);go(curTab);return}
  if(e.target.id==="r-send"){sendMsg();return}
+ var mm=e.target.closest("[data-mmore]");
+ if(mm){var mrow=mm.closest(".msg"),muid=+mrow.dataset.uid,mnm=mrow.querySelector(".mh b").textContent,mmid=+mrow.dataset.mid;openActions("Message from "+mnm,[{label:"Report this message",fn:function(){reportFlow("message",mmid,muid,mnm)}},{label:"Block "+mnm,danger:true,fn:function(){blockUser(muid,mnm)}}]);return}
  var dm=e.target.closest("[data-mdel]");
  if(dm){if(!confirm("Delete this message?"))return;try{await api("/api/rooms/"+curRoom.id+"/messages/"+dm.dataset.mdel,"DELETE");var el=dm.closest(".msg");if(el)el.remove()}catch(x){toast(x.message)}}});
 $("#room").addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.id==="r-in"){e.preventDefault();sendMsg()}});
@@ -472,7 +484,7 @@ function agoTxt(t){var a=ago(t);return a==="now"?"just now":a+" ago"}
 function ansLine(p,max){return p.videoUrl?'<span class="ptri"></span>Video answer'+(p.caption?' · '+esc(p.caption.slice(0,100)):''):esc(p.caption.length>max?p.caption.slice(0,max-3)+"…":p.caption)}
 function qaInboxHTML(list){
  if(!list.length)return '<p class="empty">No open questions. When readers ask you something from your author page, it shows up here.</p>';
- return '<p class="sub">Answer with a video or a snippet. Your answer is posted with the question, and saved in the reader’s Responses.</p>'+list.map(function(x){return '<div class="qa"><p class="qq">“'+esc(x.body)+'”</p><small>from '+esc(x.asker.name)+' · '+agoTxt(x.created)+'</small><div class="qacts"><button class="chip" data-qreply="'+x.id+'" data-kind="video">Reply with video</button><button class="chip" data-qreply="'+x.id+'" data-kind="snippet">Reply with a snippet</button><button class="chip" data-qdel="'+x.id+'">Dismiss</button></div></div>'}).join("")}
+ return '<p class="sub">Answer with a video or a snippet. Your answer is posted with the question, and saved in the reader’s Responses.</p>'+list.map(function(x){return '<div class="qa"><p class="qq">“'+esc(x.body)+'”</p><small>from '+esc(x.asker.name)+' · '+agoTxt(x.created)+'</small><div class="qacts"><button class="chip" data-qreply="'+x.id+'" data-kind="video">Reply with video</button><button class="chip" data-qreply="'+x.id+'" data-kind="snippet">Reply with a snippet</button><button class="chip" data-qdel="'+x.id+'">Dismiss</button><button class="chip" data-qrep="'+x.id+'" data-uid="'+x.asker.id+'" data-name="'+esc(x.asker.name)+'">Report</button><button class="chip" data-qblk="'+x.asker.id+'" data-name="'+esc(x.asker.name)+'">Block</button></div></div>'}).join("")}
 function responsesHTML(d){
  if(!d.responses.length&&!d.waiting.length)return '<p class="empty">No responses yet. Open an author’s page and tap Q&amp;A to ask a question. Their video or snippet answer will be saved here with your question.</p>';
  var h=d.responses.length?d.responses.map(function(x){var p=x.post;return '<article class="qa resp" data-post="'+p.id+'"><div class="rh">'+avHTML(p.author.avatarUrl,p.author.name)+'<div style="flex:1"><b>'+anm(p.author.id,p.author.name)+'</b><br><small>answered '+agoTxt(p.createdAt)+'</small></div>'+(x.isNew?'<span class="newtag">NEW</span>':'')+'</div><small>You asked</small><p class="qq">“'+esc(x.body)+'”</p><div class="qans">'+ansLine(p,200)+'</div></article>'}).join(""):'<p class="empty" style="padding-top:0">Nothing answered yet.</p>';
@@ -524,17 +536,17 @@ async function renderShareImage(p){
  c.fillStyle=cream;c.textBaseline="alphabetic";c.font="700 40px "+SERIF;c.fillText("DogEaredBooks",158,98);
  var y=176;c.textAlign="left";
  if(p.question){
-  c.fillStyle="rgba(244,234,213,.75)";c.font="500 24px "+SERIF;var lw=trackW(c,"A READER ASKED",5);track(c,"A READER ASKED",(W-lw)/2,y,5);y+=22;
+  c.fillStyle="rgba(228,238,238,.75)";c.font="500 24px "+SERIF;var lw=trackW(c,"A READER ASKED",5);track(c,"A READER ASKED",(W-lw)/2,y,5);y+=22;
   c.font="italic 500 40px "+SERIF;c.fillStyle=cream;var ql=wrap(c,"“"+p.question.body+"”",W-240,3*54,54,0);
   ql.lines.forEach(function(l){c.textAlign="center";c.fillText(l.t,W/2,y+44);y+=54;c.textAlign="left"});y+=26}
- c.fillStyle="rgba(244,234,213,.85)";c.font="500 26px "+SERIF;var gl=p.genres.join(" / ").toUpperCase(),gw=trackW(c,gl,5),gx=(W-gw)/2;
+ c.fillStyle="rgba(228,238,238,.85)";c.font="500 26px "+SERIF;var gl=p.genres.join(" / ").toUpperCase(),gw=trackW(c,gl,5),gx=(W-gw)/2;
  track(c,gl,gx,y+30,5);c.fillRect(gx-70,y+21,50,2);c.fillRect(gx+gw+20,y+21,50,2);
  var top=y+66,bottom=1085,avail=bottom-top;
  if(isVid){
   var vh=Math.min(avail,600),vy=top+(avail-vh)/2;
   c.fillStyle="rgba(14,18,21,.45)";c.strokeStyle="rgba(97,201,194,.7)";c.lineWidth=3;c.beginPath();c.roundRect?c.roundRect(100,vy,880,vh,28):c.rect(100,vy,880,vh);c.fill();c.stroke();
   c.fillStyle="#61c9c2";c.beginPath();c.arc(W/2,vy+vh*.38,92,0,7);c.fill();c.fillStyle="#1d2a30";c.beginPath();c.moveTo(W/2-26,vy+vh*.38-44);c.lineTo(W/2+46,vy+vh*.38);c.lineTo(W/2-26,vy+vh*.38+44);c.closePath();c.fill();
-  c.fillStyle="rgba(244,234,213,.8)";c.font="500 24px "+SERIF;track(c,"VIDEO",132,vy+58,6);
+  c.fillStyle="rgba(228,238,238,.8)";c.font="500 24px "+SERIF;track(c,"VIDEO",132,vy+58,6);
   if(p.caption){c.fillStyle=cream;c.font="500 38px "+SERIF;var cl=wrap(c,p.caption,780,vh*.3,52,0),cy=vy+vh-34-cl.h+40;cl.lines.forEach(function(l){c.textAlign="center";c.fillText(l.t,W/2,cy);cy+=52;c.textAlign="left"})}
  }else{
   c.font="500 46px "+SERIF;var padX=64,padY=58,tw=880-padX*2-14,foot=60,tx=wrap(c,p.caption,tw,avail-padY*2-foot,66,26);
@@ -551,10 +563,10 @@ async function renderShareImage(p){
  if(av)c.drawImage(av,cx-46,ay-46,92,92);else{c.fillStyle="#05597e";c.fillRect(cx-46,ay-46,92,92);c.fillStyle="#61c9c2";c.font="700 46px "+SERIF;c.textAlign="center";c.fillText(name[0].toUpperCase(),cx,ay+16);c.textAlign="left"}
  c.restore();c.strokeStyle="#61c9c2";c.lineWidth=3;c.beginPath();c.arc(cx,ay,46,0,7);c.stroke();
  var maxN=cov?620:760;c.fillStyle=cream;c.font="700 52px "+SERIF;c.fillText(fitText(c,name,maxN),216,ay+4);
- c.fillStyle="rgba(244,234,213,.8)";c.font="italic 500 29px "+SERIF;
+ c.fillStyle="rgba(228,238,238,.8)";c.font="italic 500 29px "+SERIF;
  var sub=p.book?"From "+p.book+(p.series?" · "+p.series.name:""):"Answering a reader’s question";c.fillText(fitText(c,sub,maxN),216,ay+46);
  if(cov){c.save();c.shadowColor="rgba(0,0,0,.55)";c.shadowBlur=18;c.shadowOffsetY=8;c.drawImage(cov,880,1098,100,150);c.restore()}
- c.fillStyle="rgba(244,234,213,.6)";c.font="500 24px "+SERIF;c.textAlign="center";c.fillText("© "+name+" · shared from DogEaredBooks",W/2,1306);c.textAlign="left";
+ c.fillStyle="rgba(228,238,238,.6)";c.font="500 24px "+SERIF;c.textAlign="center";c.fillText("© "+name+" · shared from DogEaredBooks",W/2,1306);c.textAlign="left";
  // a faint repeating watermark across the whole picture
  c.save();c.translate(W/2,H/2);c.rotate(-Math.PI/7);c.fillStyle="rgba(97,201,194,.085)";c.font="700 52px "+SERIF;
  var mark=name+" · DogEaredBooks",mw=c.measureText(mark).width+150;
@@ -583,6 +595,54 @@ async function sharePost(p){
  try{if(await nativeShare(blob,name,text))return}catch(e){if(/cancel/i.test(String((e&&e.message)||e)))return}
  try{var file=new File([blob],name,{type:"image/png"});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"DogEaredBooks",text:text});return}}catch(e){if(e&&e.name==="AbortError")return}
  showSharePreview(blob,name)}
+/* ---- report, block, help ---- */
+var GUIDELINES='<p><b>DogEaredBooks is for people who love books.</b> To keep it welcoming:</p><ul><li><b>Be kind.</b> No harassment, bullying, threats or hate.</li><li><b>Only share what is yours</b>, or what you have permission to share. Do not post other writers’ work, covers or chapters.</li><li><b>Nothing sexual involving children, ever.</b> Reports about children are acted on straight away and may be passed to the authorities.</li><li><b>Keep it suitable for a wide audience.</b> No sexually explicit material, graphic violence or content that encourages self-harm.</li><li><b>No spam, scams or pretending to be someone else</b>, including impersonating an author.</li><li><b>Spoilers belong in book chats</b>, not in posts.</li></ul><p><b>What happens next:</b> our team reviews every report. Content that breaks these rules is removed, and accounts can be suspended or closed. You can block anyone at any time, and reports are private.</p>';
+function showInfo(title,html){$("#info-t").textContent=title;$("#info-b").innerHTML=html;$("#info").hidden=false}
+$("#info").addEventListener("click",function(e){if(e.target.closest(".pk-bd,#info-x"))$("#info").hidden=true});
+document.addEventListener("click",function(e){var i=e.target.closest("[data-info]");if(i&&i.dataset.info==="guidelines"){e.preventDefault();showInfo("Community guidelines",GUIDELINES+(appCfg.supportEmail?'<p>Questions? Email <b>'+esc(appCfg.supportEmail)+'</b>.</p>':''))}});
+api("/api/config").then(function(d){appCfg=d}).catch(function(){});
+function openActions(title,items){
+ actFns=items;$("#act-t").textContent=title;
+ $("#act-list").innerHTML=items.map(function(it,i){return '<button type="button" class="pk-item'+(it.danger?' danger':'')+'" data-ai="'+i+'"><span class="pk-tx"><span class="pk-t">'+esc(it.label)+'</span></span></button>'}).join("");
+ $("#act").hidden=false}
+$("#act").addEventListener("click",function(e){
+ if(e.target.closest(".pk-bd,#act-x")){$("#act").hidden=true;return}
+ var b=e.target.closest("[data-ai]");if(!b)return;var it=actFns[+b.dataset.ai];$("#act").hidden=true;if(it)it.fn()});
+var RREASONS=[["child_safety","Involves a child or child abuse"],["illegal","Illegal content"],["self_harm","Self-harm or suicide"],["harassment","Harassment or bullying"],["hate","Hate or abusive content"],["sexual","Sexual or explicit content"],["violence","Violence or threats"],["copyright","Stolen or copyrighted work"],["impersonation","Pretending to be someone else"],["spam","Spam or scam"],["other","Something else"]];
+function reportFlow(type,id,ownerId,ownerName){
+ reportCtx={type:type,id:id,ownerId:ownerId,ownerName:ownerName,reason:null};
+ $("#rpt-t").textContent="Report "+({post:"this post",comment:"this comment",message:"this message",question:"this question",user:ownerName})[type];
+ $("#rpt-list").innerHTML=RREASONS.map(function(r){return '<button type="button" class="pk-item" data-rr="'+r[0]+'" role="radio" aria-checked="false"><span class="pk-tx"><span class="pk-t">'+r[1]+'</span></span><span class="pk-ck"></span></button>'}).join("");
+ $("#rpt-note").value="";$("#rpt-block").checked=false;$("#rpt-blk").style.display=ownerId?"flex":"none";$("#rpt-bn").textContent=ownerName||"this account";$("#rpt-err").textContent="";$("#rpt-send").disabled=true;$("#rpt").hidden=false}
+$("#rpt").addEventListener("click",async function(e){
+ if(e.target.closest(".pk-bd,#rpt-x")){$("#rpt").hidden=true;return}
+ var rr=e.target.closest("[data-rr]");
+ if(rr){reportCtx.reason=rr.dataset.rr;document.querySelectorAll("#rpt-list .pk-item").forEach(function(x){var on=x===rr;x.classList.toggle("on",on);x.setAttribute("aria-checked",on)});$("#rpt-send").disabled=false;return}
+ if(e.target.id==="rpt-send"){
+  var c=reportCtx;if(!c||!c.reason)return;$("#rpt-send").disabled=true;
+  try{
+   var alsoBlock=$("#rpt-block").checked&&!!c.ownerId;
+   await api("/api/reports","POST",{type:c.type,id:c.id,reason:c.reason,note:$("#rpt-note").value.trim(),alsoBlock:alsoBlock});
+   $("#rpt").hidden=true;hideFromView(alsoBlock?c.ownerId:0,c.type==="post"?c.id:0);toast("Thanks. Our team will review this.")
+  }catch(x){$("#rpt-err").textContent=x.message;$("#rpt-send").disabled=false}}});
+function hideFromView(ownerId,postId){
+ document.querySelectorAll(".card[data-id]").forEach(function(cd){var q=byId(cd.dataset.id);if((ownerId&&q&&q.author.id===ownerId)||(postId&&+cd.dataset.id===postId)){io.unobserve(cd);cd.remove()}});
+ if(ownerId)document.querySelectorAll('.msg[data-uid="'+ownerId+'"]').forEach(function(x){x.remove()});
+ dirty=true;
+ if($("#v-post").classList.contains("on"))go(curTab);
+ if(ownerId&&$("#v-author").classList.contains("on")&&viewing&&viewing.author.id===ownerId)go(curTab);
+ if($("#sheet").classList.contains("open")&&current)openSheet()}
+async function blockUser(id,name){
+ if(!confirm("Block "+name+"? You won’t see each other’s posts, comments or chats, and they can’t follow or contact you."))return false;
+ try{await api("/api/users/"+id+"/block","POST");hideFromView(id,0);toast("Blocked "+name);return true}catch(e){toast(e.message);return false}}
+async function unblockUser(id,name){try{await api("/api/users/"+id+"/block","DELETE");dirty=true;toast("Unblocked "+name);return true}catch(e){toast(e.message);return false}}
+function safetyHTML(){
+ var h='<p class="sub">Use the ··· button on posts, comments, chat messages and author pages to report something or block someone. Reports are private. Blocking hides two people from each other.</p><p class="sub" style="margin-top:16px">Blocked accounts</p>';
+ h+=blockList.length?blockList.map(function(b){return '<div class="frow">'+avHTML(b.avatarUrl,b.name)+'<span style="flex:1">'+esc(b.name)+'</span><button class="chip" data-unblock="'+b.id+'" data-name="'+esc(b.name)+'">Unblock</button></div>'}).join(""):'<p class="empty" style="padding-top:0">You haven’t blocked anyone.</p>';
+ h+='<p class="sub" style="margin-top:20px">Help</p><div class="qacts"><button class="chip" data-info="guidelines">Community guidelines</button>'+(appCfg.supportEmail?'<a class="chip" href="mailto:'+esc(appCfg.supportEmail)+'?subject=DogEaredBooks%20support" style="text-decoration:none">Contact support</a>':'')+'</div>'+(appCfg.supportEmail?'<p class="sub" style="margin-top:8px">'+esc(appCfg.supportEmail)+'</p>':'');
+ return h}
+$("#cmts").addEventListener("click",function(e){var b=e.target.closest("[data-cmore]");if(!b)return;var cid=+b.dataset.cmore,uid=+b.dataset.uid,nm=b.dataset.name;
+ openActions("Comment by "+nm,[{label:"Report this comment",fn:function(){reportFlow("comment",cid,uid,nm)}},{label:"Block "+nm,danger:true,fn:function(){blockUser(uid,nm)}}])});
 function wc(s){return (s.trim().match(/\S+/g)||[]).length}
 function postCheck(){
  var f=$("#w-file").files[0],c=$("#w-cap").value,over=f?c.length>280:wc(c)>250;

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0f1318">
+<title>DogEaredBooks Admin</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{color-scheme:dark;--bg:#0f1318;--card:#1a212b;--line:#2b3542;--ink:#e8edf2;--mute:#8c99a8;--acc:#e0a63a;--bad:#e5645a;--ok:#5bbd7a;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{background:#11161d;border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+button{background:#232c38;border:1px solid var(--line);border-radius:8px;padding:8px 13px;cursor:pointer}
+button:hover{background:#2a3543}
+button.pri{background:var(--acc);color:#1d1403;border-color:var(--acc);font-weight:600}
+button.bad{background:#3a1f1d;border-color:#6a2d29;color:#ffb3ac}
+button.ok{background:#17301f;border-color:#2c5a3a;color:#a8e6bb}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+#login{max-width:360px;margin:12vh auto;padding:24px;background:var(--card);border:1px solid var(--line);border-radius:14px}
+#login h1{font-size:20px;margin-bottom:4px}#login p{color:var(--mute);margin-bottom:14px}
+#login label{display:block;margin:12px 0 5px;color:var(--mute);font-size:13px}
+#login button{width:100%;margin-top:16px;padding:11px}
+.err{color:var(--bad);min-height:20px;margin-top:10px;font-size:14px}
+header{position:sticky;top:0;z-index:5;background:#0b0f14;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:10px 14px;flex-wrap:wrap}
+header b{margin-right:10px;white-space:nowrap}
+header nav{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+header nav button{background:none;border-color:transparent;color:var(--mute)}
+header nav button[aria-selected=true]{background:var(--card);border-color:var(--line);color:var(--ink)}
+.pill{display:inline-block;background:var(--acc);color:#1d1403;border-radius:99px;font-size:12px;font-weight:700;padding:0 7px;margin-left:5px}
+main{max-width:980px;margin:0 auto;padding:18px 14px 60px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat b{display:block;font-size:22px}.stat span{color:var(--mute);font-size:13px}
+.warn{background:#3a2c10;border:1px solid #6a5220;border-radius:10px;padding:10px 12px;margin-bottom:14px}
+.bar{display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+.bar input{max-width:320px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.card.p0{border-color:#8a3a35;box-shadow:0 0 0 1px #8a3a35}
+.top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.tag{border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;background:#2a3543;text-transform:uppercase;letter-spacing:.04em}
+.tag.r{background:#4a2421;color:#ffb3ac}.tag.y{background:#3f3213;color:#f0cd7d}.tag.g{background:#17301f;color:#a8e6bb}
+.mute{color:var(--mute)}.small{font-size:13px}
+.quote{background:#11161d;border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:8px;padding:10px 12px;margin:10px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+video{max-width:100%;max-height:300px;border-radius:8px;background:#000;display:block;margin-top:8px}
+.reps{margin:8px 0;padding:0;list-style:none}.reps li{padding:6px 0;border-top:1px solid var(--line)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.acts input{max-width:320px;flex:1}.acts select{width:auto}
+a.lnk,button.lnk{background:none;border:0;padding:0;color:var(--acc);cursor:pointer;text-decoration:underline}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--mute);font-weight:500;font-size:13px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.empty{color:var(--mute);text-align:center;padding:40px 0}
+</style>
+</head>
+<body>
+<div id="login" hidden>
+  <h1>DogEaredBooks Admin</h1><p>For moderators only. Use an account that has been made an admin on the server.</p>
+  <label for="l-name">Account name</label><input id="l-name" autocomplete="username">
+  <label for="l-pw">Password</label><input id="l-pw" type="password" autocomplete="current-password">
+  <p class="err" id="l-err" role="alert"></p><button class="pri" id="l-go">Sign in</button>
+</div>
+<div id="app" hidden>
+  <header><b>DogEaredBooks Admin</b><nav id="nav"></nav><span class="mute small" id="who"></span><button id="out">Sign out</button></header>
+  <main id="main"></main>
+</div>
+<script>
+var $=function(s){return document.querySelector(s)};
+var tok=null;try{tok=sessionStorage.getItem("deb_admin")}catch(e){}
+var tab="reports",rfilter="open",stats=null,detailId=null,me="";
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function when(t){return t?new Date(t).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):""}
+function ago(t){var s=(Date.now()-t)/1000;return s<60?"just now":s<3600?Math.floor(s/60)+" min ago":s<86400?Math.floor(s/3600)+" h ago":Math.floor(s/86400)+" d ago"}
+var REASONS={child_safety:"Child safety",illegal:"Illegal",self_harm:"Self-harm",harassment:"Harassment",hate:"Hate / abuse",sexual:"Sexual content",violence:"Violence / threats",copyright:"Copyright",impersonation:"Impersonation",spam:"Spam / scam",other:"Other"};
+async function api(p,m,b){
+  var r=await fetch(p,{method:m||"GET",headers:Object.assign({"Content-Type":"application/json"},tok?{Authorization:"Bearer "+tok}:{}),body:b?JSON.stringify(b):undefined}),d={};
+  try{d=await r.json()}catch(e){}
+  if(!r.ok){if((r.status===401||r.status===403)&&p!=="/api/admin/login"){signOut()}throw new Error(d.error||"Something went wrong")}
+  return d}
+function signOut(){tok=null;try{sessionStorage.removeItem("deb_admin")}catch(e){}$("#app").hidden=true;$("#login").hidden=false}
+$("#out").onclick=signOut;
+$("#l-go").onclick=async function(){$("#l-err").textContent="";
+  try{var d=await api("/api/admin/login","POST",{name:$("#l-name").value.trim(),password:$("#l-pw").value});tok=d.token;me=d.name;try{sessionStorage.setItem("deb_admin",tok);sessionStorage.setItem("deb_admin_name",me)}catch(e){}$("#l-pw").value="";start()}
+  catch(e){$("#l-err").textContent=e.message}};
+$("#l-pw").addEventListener("keydown",function(e){if(e.key==="Enter")$("#l-go").click()});
+function nav(){$("#nav").innerHTML=[["reports","Reports"+(stats&&stats.openReports?'<span class="pill">'+stats.openReports+'</span>':"")],["users","Users"],["content","Content"],["log","Activity log"]].map(function(x){return '<button data-t="'+x[0]+'" aria-selected="'+(tab===x[0])+'">'+x[1]+'</button>'}).join("")}
+$("#nav").addEventListener("click",function(e){var b=e.target.closest("[data-t]");if(b){tab=b.dataset.t;detailId=null;show()}});
+async function start(){$("#login").hidden=true;$("#app").hidden=false;try{me=sessionStorage.getItem("deb_admin_name")||me}catch(e){}$("#who").textContent=me;show()}
+async function show(){
+  try{stats=await api("/api/admin/stats")}catch(e){return}
+  nav();var m=$("#main");m.innerHTML='<p class="empty">Loading…</p>';
+  try{if(tab==="reports")await viewReports();else if(tab==="users")await viewUsers();else if(tab==="content")await viewContent();else await viewLog()}catch(e){m.innerHTML='<p class="empty">'+esc(e.message)+'</p>'}}
+function statsHTML(){var s=stats;return (s.supportEmailSet?'':'<div class="warn">The app has no support email yet. Set <b>SUPPORT_EMAIL</b> in the server’s <b>.env</b> file; the app stores require visible contact details.</div>')+
+ '<div class="stats">'+[["Open reports",s.openReports],["Posts hidden",s.hidden],["Suspended",s.suspended],["Members",s.users],["Authors",s.authors],["Posts",s.posts],["Sign-ups (7 days)",s.signups7]].map(function(x){return '<div class="stat"><b>'+x[1]+'</b><span>'+x[0]+'</span></div>'}).join("")+'</div>'}
+function contentHTML(g){
+  var c=g.content,sn=g.snapshot||{},h="";
+  if(g.type==="user"){return '<div class="quote">Account: <b>'+esc((c&&c.author)||sn.name)+'</b> ('+esc((c&&c.role)||sn.role||"")+')'+(g.ownerSuspended?' <span class="tag r">suspended</span>':'')+'</div>'}
+  if(!c)h+='<p class="small mute">This content has already been removed. A copy kept with the report:</p>';
+  var text=c?(c.caption!=null?c.caption:c.body):(sn.caption!=null?sn.caption:sn.body);
+  h+='<div class="quote">'+(text?esc(text):'<span class="mute">(no text)</span>')+'</div>';
+  if(g.type==="post"){var b=c?c.book:sn.book;h+='<p class="small mute">'+(b?'Book: '+esc(b)+' · ':'')+'Genres: '+esc(((c&&c.genres)||sn.genres||[]).join(", "))+(c&&c.hidden?' · <span class="tag y">hidden from the app</span>':'')+'</p>';
+    if(c&&c.videoUrl)h+='<video controls preload="metadata" src="'+esc(c.videoUrl)+'"></video>';else if(!c&&sn.video)h+='<p class="small mute">Had a video (file removed).</p>'}
+  return h}
+async function viewReports(){
+  var d=await api("/api/admin/reports?status="+rfilter),m=$("#main");
+  var h=statsHTML()+'<div class="bar"><button data-rf="open" class="'+(rfilter==="open"?"pri":"")+'">Open</button><button data-rf="resolved" class="'+(rfilter==="resolved"?"pri":"")+'">Resolved</button></div>';
+  if(!d.groups.length)h+='<p class="empty">'+(rfilter==="open"?"Nothing waiting. Good news.":"No resolved reports yet.")+'</p>';
+  d.groups.forEach(function(g,i){
+    var reasons={};g.reports.forEach(function(r){reasons[r.reason]=(reasons[r.reason]||0)+1});
+    var key=g.type+":"+g.targetId;
+    h+='<div class="card'+(g.priority===0?" p0":"")+'" data-key="'+key+'"><div class="top"><span class="tag">'+esc(g.type)+'</span>'+Object.keys(reasons).map(function(r){return '<span class="tag '+(["child_safety","illegal","self_harm"].indexOf(r)>-1?"r":"y")+'">'+esc(REASONS[r]||r)+(reasons[r]>1?" ×"+reasons[r]:"")+'</span>'}).join("")+
+      '<span class="mute small">'+g.reports.length+' report'+(g.reports.length===1?"":"s")+' · '+(rfilter==="open"?"first "+ago(g.first):"resolved "+ago(g.resolvedAt))+'</span></div>'+
+      '<div class="small">By <button class="lnk" data-user="'+g.ownerId+'">'+esc(g.owner||"unknown")+'</button></div>'+contentHTML(g)+
+      '<ul class="reps">'+g.reports.map(function(r){return '<li class="small"><b>'+esc(REASONS[r.reason]||r.reason)+'</b> from '+esc(r.reporter)+' <span class="mute">'+when(r.created)+'</span>'+(r.note?'<br><span class="mute">“'+esc(r.note)+'”</span>':'')+'</li>'}).join("")+'</ul>';
+    if(rfilter==="open"){
+      h+='<div class="acts"><input placeholder="Note (shown to them if suspended)" data-note="'+key+'"><select data-days="'+key+'"><option value="1">1 day</option><option value="7" selected>7 days</option><option value="30">30 days</option><option value="0">Permanent</option></select></div>'+
+        '<div class="acts"><button class="ok" data-act="dismiss" data-key="'+key+'">Dismiss (no problem)</button>'+(g.type!=="user"?'<button class="bad" data-act="remove" data-key="'+key+'">Remove content</button><button class="bad" data-act="remove_suspend" data-key="'+key+'">Remove + suspend</button>':'')+'<button class="bad" data-act="suspend" data-key="'+key+'">Suspend account</button></div>'}
+    else h+='<p class="small"><span class="tag g">resolved</span> '+esc(g.resolution||"")+'</p>';
+    h+='</div>'});
+  m.innerHTML=h}
+async function viewUsers(){
+  var m=$("#main"),q=($("#uq")&&$("#uq").value)||"";
+  if(detailId)return viewUser(detailId);
+  var d=await api("/api/admin/users?q="+encodeURIComponent(q));
+  m.innerHTML='<div class="bar"><input id="uq" placeholder="Search by name" value="'+esc(q)+'"><button id="usearch" class="pri">Search</button></div>'+
+   (d.users.length?'<table><tr><th>Name</th><th>Role</th><th>Joined</th><th>Posts</th><th>Reported</th><th></th></tr>'+d.users.map(function(u){return '<tr><td><button class="lnk" data-user="'+u.id+'">'+esc(u.name)+'</button>'+(u.is_admin?' <span class="tag g">admin</span>':'')+'</td><td>'+esc(u.role)+'</td><td class="small">'+when(u.created)+'</td><td>'+u.posts+'</td><td>'+u.reported+'</td><td>'+(u.banned_until>Date.now()?'<span class="tag r">suspended</span>':'')+'</td></tr>'}).join("")+'</table>':'<p class="empty">No one matches.</p>')}
+async function viewUser(id){
+  var d=await api("/api/admin/users/"+id),u=d.user,m=$("#main");
+  m.innerHTML='<button id="uback">← All users</button><div class="card" style="margin-top:12px"><div class="row"><div><h2 style="font-size:20px">'+esc(u.name)+(u.is_admin?' <span class="tag g">admin</span>':'')+'</h2><p class="mute small">'+esc(u.role)+' · joined '+when(u.created)+' · agreed to guidelines '+(u.terms_at?when(u.terms_at):'—')+'</p></div>'+(u.banned?'<span class="tag r">suspended'+(u.banned_until>=8.64e15?' forever':' until '+when(u.banned_until))+'</span>':'')+'</div>'+
+   '<p class="small mute" style="margin-top:6px">Reports made: '+d.reportsMade+' · Blocked by: '+d.blockedBy+' people</p>'+(u.banned&&u.ban_reason?'<p class="small">Reason shown to them: '+esc(u.ban_reason)+'</p>':'')+
+   '<div class="acts">'+(u.is_admin?'<span class="mute small">Admins can’t be suspended here.</span>':(u.banned?'<button class="ok" data-unsuspend="'+u.id+'">Lift suspension</button>':'<input id="s-reason" placeholder="Reason (shown to them)"><select id="s-days"><option value="1">1 day</option><option value="7" selected>7 days</option><option value="30">30 days</option><option value="0">Permanent</option></select><button class="bad" data-suspend="'+u.id+'">Suspend</button>'))+'</div></div>'+
+   '<h3 style="margin:18px 0 8px">Recent posts</h3>'+(d.posts.length?d.posts.map(function(p){return postRow(p)}).join(""):'<p class="mute">None.</p>')+
+   '<h3 style="margin:18px 0 8px">Reports against this account</h3>'+(d.reportsAgainst.length?'<table><tr><th>When</th><th>About</th><th>Reason</th><th>From</th><th>Status</th></tr>'+d.reportsAgainst.map(function(r){return '<tr><td class="small">'+when(r.created)+'</td><td>'+esc(r.target_type)+'</td><td>'+esc(REASONS[r.reason]||r.reason)+(r.note?'<br><span class="mute small">'+esc(r.note)+'</span>':'')+'</td><td>'+esc(r.reporter)+'</td><td class="small">'+esc(r.status==="open"?"open":(r.resolution||"resolved"))+'</td></tr>'}).join("")+'</table>':'<p class="mute">None.</p>')}
+function postRow(p){return '<div class="card"><div class="top">'+(p.hidden?'<span class="tag y">hidden</span>':'')+(p.reports?'<span class="tag r">'+p.reports+' open report'+(p.reports===1?"":"s")+'</span>':'')+'<span class="mute small">'+when(p.created)+(p.author?' · by <button class="lnk" data-user="'+p.authorId+'">'+esc(p.author)+'</button>':'')+(p.book?' · '+esc(p.book):'')+'</span></div><div class="quote">'+(p.caption?esc(p.caption):'<span class="mute">(no text)</span>')+'</div>'+(p.videoUrl?'<video controls preload="metadata" src="'+esc(p.videoUrl)+'"></video>':'')+'<div class="acts">'+(p.hidden?'<button class="ok" data-restore="'+p.id+'">Restore</button>':'')+'<button class="bad" data-rmpost="'+p.id+'">Remove post</button></div></div>'}
+async function viewContent(){
+  var q=($("#cq")&&$("#cq").value)||"",d=await api("/api/admin/content?q="+encodeURIComponent(q));
+  $("#main").innerHTML='<div class="bar"><input id="cq" placeholder="Search text, book or author" value="'+esc(q)+'"><button id="csearch" class="pri">Search</button></div>'+(d.posts.length?d.posts.map(postRow).join(""):'<p class="empty">No posts found.</p>')}
+async function viewLog(){
+  var d=await api("/api/admin/log");
+  $("#main").innerHTML='<p class="mute small" style="margin-bottom:10px">Every moderator action is recorded here and cannot be edited.</p>'+(d.log.length?'<table><tr><th>When</th><th>Admin</th><th>Action</th><th>Item</th><th>Detail</th></tr>'+d.log.map(function(l){return '<tr><td class="small">'+when(l.created)+'</td><td>'+esc(l.admin_name)+'</td><td>'+esc(l.action)+'</td><td class="small">'+esc(l.target_type||"")+(l.target_id?" #"+l.target_id:"")+'</td><td class="small">'+esc(l.detail||"")+'</td></tr>'}).join("")+'</table>':'<p class="empty">Nothing yet.</p>')}
+document.addEventListener("click",async function(e){
+  var t=e.target;
+  try{
+    var rf=t.closest("[data-rf]");if(rf){rfilter=rf.dataset.rf;return show()}
+    var us=t.closest("[data-user]");if(us){tab="users";detailId=+us.dataset.user;return show()}
+    if(t.id==="uback"){detailId=null;return show()}
+    if(t.id==="usearch"){detailId=null;return viewUsers()}
+    if(t.id==="csearch")return viewContent();
+    var act=t.closest("[data-act]");
+    if(act){var key=act.dataset.key,parts=key.split(":"),a=act.dataset.act,note=document.querySelector('[data-note="'+key+'"]').value,days=+document.querySelector('[data-days="'+key+'"]').value;
+      var msg={dismiss:"Dismiss these reports and keep the content?",remove:"Permanently remove this content?",remove_suspend:"Remove this content AND suspend the account?",suspend:"Suspend this account?"}[a];
+      if(!confirm(msg))return;
+      await api("/api/admin/reports/resolve","POST",{type:parts[0],targetId:+parts[1],action:a,days:days,note:note});return show()}
+    var sp=t.closest("[data-suspend]");if(sp){if(!confirm("Suspend this account?"))return;await api("/api/admin/users/"+sp.dataset.suspend+"/suspend","POST",{days:+$("#s-days").value,reason:$("#s-reason").value});return show()}
+    var un=t.closest("[data-unsuspend]");if(un){await api("/api/admin/users/"+un.dataset.unsuspend+"/unsuspend","POST");return show()}
+    var rp=t.closest("[data-rmpost]");if(rp){if(!confirm("Permanently remove this post?"))return;await api("/api/admin/posts/"+rp.dataset.rmpost+"/remove","POST");return show()}
+    var rs=t.closest("[data-restore]");if(rs){await api("/api/admin/posts/"+rs.dataset.restore+"/restore","POST");return show()}
+  }catch(err){alert(err.message)}});
+if(tok)start();else $("#login").hidden=false;
+</script>
+</body>
+</html>

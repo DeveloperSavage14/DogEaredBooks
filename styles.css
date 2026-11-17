@@ -288,6 +288,19 @@ img.av{object-fit:cover;display:block}
 #spv-img{max-width:100%;max-height:46vh;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .spvbody .sub{margin:12px 0 0;opacity:.75}
 #spv-dl{display:block;text-decoration:none;text-align:center;margin-top:14px}
+/* ---- reporting, blocking, safety ---- */
+.rbar2{display:flex;justify-content:space-between;align-items:center}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;font:inherit;cursor:pointer}
+.pk-sheet .linkbtn{color:#05597e}
+.pk-item.danger .pk-t{color:#a1281f}
+.rptbody{padding:0 18px calc(18px + env(safe-area-inset-bottom,0px));overflow-y:auto}
+#rpt .pk-item .pk-t{font-size:15px}
+#info-b{padding:8px 20px calc(24px + env(safe-area-inset-bottom,0px));overflow-y:auto;line-height:1.5;font-family:var(--serif)}
+#info-b ul{padding-left:20px;margin:8px 0}
+#info-b li{margin-bottom:8px}
+.cmore{float:right;letter-spacing:2px}
+#rpt .pk-sheet{max-height:88%}
+#rpt-send{position:sticky;bottom:0;margin-top:14px;box-shadow:0 -16px 14px -4px #e4eeee}
 .rsz{display:flex;align-items:center;gap:8px}
 .rsz input{width:104px;accent-color:#05597e;height:28px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
